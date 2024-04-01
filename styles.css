@@ -1,0 +1,66 @@
+body {
+    margin: 0px;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    border: 2px solid black;
+}
+
+
+.game-container {
+    display: flex;
+    height: 50%;
+    width: 25%;
+    flex-direction: column;
+    border: 2px solid black;
+}
+
+.game-header {
+    text-align: center;
+    border: 2px solid black;
+}
+
+.game-box {
+    display: grid;
+    flex-grow: 1;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    align-items: center;
+    border: 2px solid black;
+    cursor: pointer;
+}
+
+.cell {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cell:nth-child(1), .cell:nth-child(2), .cell:nth-child(4),
+.cell:nth-child(5), .cell:nth-child(7), .cell:nth-child(8) {
+    border-right: 2px solid black;
+}
+
+.cell:nth-child(-n + 6) {
+    border-bottom: 2px solid black;
+}
+
+
+.game-options {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    border: 2px solid black;
+}
+
+.display-results {
+
+}
+
+.reset-button {
+    font-weight: bold;
+}

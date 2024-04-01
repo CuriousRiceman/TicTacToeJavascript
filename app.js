@@ -7,14 +7,18 @@ const game = (function() {
     let player1 = null;
     let player2 = null;
 
+    const boardLength = board.length;
+    const divBoard = document.querySelector(".game-box");
+
     // Note: Arrow functions context is global (window), regular functions context is inherited from surrounding scope (based on object that called it)
-    function getBoard() {
-        console.log('Tic Tac Toe Board:');
-        console.log(board[0] + ' | ' + board[1] + ' | ' + board[2]);
-        console.log('-------');
-        console.log(board[3] + ' | ' + board[4] + ' | ' + board[5]);
-        console.log('-------');
-        console.log(board[6] + ' | ' + board[7] + ' | ' + board[8]);
+    function createBoard() {
+        divBoard.innerHTML = '';
+        for (let i = 0; i < boardLength; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.textContent = board[i];
+            divBoard.appendChild(cell);
+        } 
     }
 
     // Arrow function is defined within module so 'game' is its context
@@ -68,22 +72,24 @@ const game = (function() {
         1 !== true -> true (1 is not equal to true)
     */
     function playerMove(playerName, playerSign) {
-        while (true) {
-            getBoard();
-            let userInput = prompt(playerName + "'s turn. Enter a slot (1-9): ");
-            let slot = parseInt(userInput);
-            if (!isNaN(slot) && slot >= 1 && slot <= 9) {
-                slot = slot - 1;
-                if (board[slot] !== "X" && board[slot] !== "O") {
-                    board[slot] = playerSign;
-                    break;
-                } else {
-                    console.log("Choose an open slot.");
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach((cell, index) => {
+            cell.addEventListener('click', () => {
+                // Check if the cell is empty before allowing a move
+                if (board[index] !== "X" && board[index] !== "O") {
+                    board[index] = currentPlayer.sign;
+                    // Check for a winner or tie after each move
+                    if (checkWinner(board, currentPlayer.name)) {
+                        console.log(currentPlayer.name + " wins!");
+                    } else if (checkForTie(board)) {
+                        console.log("It's a tie!");
+                    } else {
+                        // Switch to the other player after the move
+                        currentPlayer = (currentPlayer === player1) ? player2 : player1;
+                    }
                 }
-            } else {
-                console.log("Enter a valid slot number.");
-            }
-        }
+            });
+        });
     }
     
     // Driver for console game only
@@ -106,8 +112,8 @@ const game = (function() {
     }
 
     // Public interface
-    return {getBoard, resetBoard, createPlayer, checkWinner, checkForTie,
+    return {createBoard, resetBoard, createPlayer, checkWinner, checkForTie,
              playerMove, startGame};
 })(); /* Can pass an argument to it */
 
-game.startGame();
+game.createBoard();
