@@ -1,16 +1,14 @@
-// Modules are created as an IIFE (immediately invoked function expression) with a function inside
-// Think of factory functions as constructors that can be reused over and over again
 const game = (function() {
-
-    // Private functions and variables
-    let board = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    let player1 = null;
-    let player2 = null;
+    let board = ['', '', '', '', '', '', '', '', ''];
+    let player1 = createPlayer("Rich", "X");
+    let player2 = createPlayer("Jake", "O");
+    let currentPlayer = player1;
 
     const boardLength = board.length;
-    const divBoard = document.querySelector(".game-box");
+    const divBoard = document.querySelector('.game-box');
+    const display = document.querySelector('.display-results');
+    const resetButton = document.querySelector('.reset-button');
 
-    // Note: Arrow functions context is global (window), regular functions context is inherited from surrounding scope (based on object that called it)
     function createBoard() {
         divBoard.innerHTML = '';
         for (let i = 0; i < boardLength; i++) {
@@ -21,99 +19,100 @@ const game = (function() {
         } 
     }
 
-    // Arrow function is defined within module so 'game' is its context
-    // Arrow functions in javascript are similar to static methods in Java, independent of state of a particular object but used at a higher level (javascript - global, java - class)
     const resetBoard = () => {
-        board = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        board = ['', '', '', '', '', '', '', '', ''];
+        addCellListeners();
+        const cells = document.querySelectorAll('.cell');
+        display.textContent = '';
+        cells.forEach((cell, index) => {
+            cell.textContent = board[index];
+        });
     }
 
-    // Can definitely just use arrow functions but I'll use both for fun
     function createPlayer(name, sign) {
         // Since I keep it as the same name, I can just leave it as {name, sign}
         return { name, sign };
     }
 
+    function getPlayerName(playerNumber) {
+        return prompt(`Enter the name for Player ${playerNumber}:`);
+    }
+
+    function initializePlayers() {
+        const playerName1 = getPlayerName(1);
+        const playerName2 = getPlayerName(2);
+        player1 = createPlayer(playerName1 || "Player 1", "X");
+        player2 = createPlayer(playerName2 || "Player 2", "O");
+        currentPlayer = player1;
+    }
+
     function checkForTie(board) {
+        let isEmptyCell = false;
         for (const slot of board) {
-            if (slot !== 'X' && slot !== 'O') {
-                return false;
+            if (slot === '') {
+                isEmptyCell = true;
             }
         }
-        console.log("Tie!");
-        return true;
+        if (!isEmptyCell) {
+            return true;
+        }
+        return false;
     }
 
     function checkWinner(board, playerName) {
         const winningCombinations = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-            [0, 4, 8], [2, 4, 6]             // Diagonals
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
         ];
-        // Iterate over each winning combination
         for (const combination of winningCombinations) {
             const [a, b, c] = combination;
-            if (board[a] === board[b] && board[b] === board[c]) {
-                console.log(playerName + " wins!");
+            if ((board[a] === "X" || board[a] === "O") && (board[a] === board[b] && board[b] === board[c])) {
                 return true;
             }
         }
         return false;
     }
 
-    /* 
-        Something I learned, parseInt(userInput) if not an int, will result in NaN which is falsy, however, NaN does not equal to false if using strict inequality (===)
-        This is because NaN is of type number, and false is of type boolean, however, !NaN === !NaN AND !!NaN === !!NaN results in TRUE,
-        The first ! operator converts NaN to tthe boolean equivalent which is false, and second ! operator makes it true.
-
-        Note: != (not equal operator) performs TYPE coercion and !== (strict inequality) does NOT perform type coercion
-        1 != '1' -> false (1 is equal to '1' after type coercion)
-        1 != true -> false (1 is equal to true after type coercion)
-        1 !== '1' -> true (1 is not equal to '1' without type coercion)
-        1 !== true -> true (1 is not equal to true)
-    */
-    function playerMove(playerName, playerSign) {
-        const cells = document.querySelectorAll('.cell');
-        cells.forEach((cell, index) => {
-            cell.addEventListener('click', () => {
-                // Check if the cell is empty before allowing a move
-                if (board[index] !== "X" && board[index] !== "O") {
-                    board[index] = currentPlayer.sign;
-                    // Check for a winner or tie after each move
-                    if (checkWinner(board, currentPlayer.name)) {
-                        console.log(currentPlayer.name + " wins!");
-                    } else if (checkForTie(board)) {
-                        console.log("It's a tie!");
-                    } else {
-                        // Switch to the other player after the move
-                        currentPlayer = (currentPlayer === player1) ? player2 : player1;
-                    }
-                }
-            });
-        });
-    }
-    
-    // Driver for console game only
-    const startGame = () => {
-        player1 = createPlayer("Rich", "X");
-        player2 = createPlayer("Jake", "O");
-        let currentPlayer = player1;
-        for (let i = 0; i < 9; i++) {
-            playerMove(currentPlayer.name, currentPlayer.sign);
+    function handleCellClick(event) {
+        const clickedCell = event.target;
+        const cellIndex = Array.from(clickedCell.parentNode.children).indexOf(clickedCell);
+        if (board[cellIndex] !== "X" && board[cellIndex] !== "O") {
+            board[cellIndex] = currentPlayer.sign;
+            clickedCell.textContent = currentPlayer.sign;
             if (checkWinner(board, currentPlayer.name)) {
-                getBoard();
-                break;
+                removeCellListeners();
+                display.textContent = currentPlayer.name + " wins!";
             } else if (checkForTie(board)) {
-                getBoard();
-                break;
+                display.textContent = "It's a tie!";
             }
             currentPlayer = (currentPlayer === player1) ? player2 : player1;
-            console.log("hi");
         }
     }
+    
+    function addCellListeners() {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach((cell) => {
+            cell.addEventListener('click', handleCellClick);
+        });
+        resetButton.addEventListener("click", resetBoard);
+    }
 
-    // Public interface
-    return {createBoard, resetBoard, createPlayer, checkWinner, checkForTie,
-             playerMove, startGame};
-})(); /* Can pass an argument to it */
+    function removeCellListeners() {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach((cell) => {
+            cell.removeEventListener('click', handleCellClick);
+        });
+    }
 
-game.createBoard();
+    const startGame = () => {
+        createBoard();
+        initializePlayers();
+        addCellListeners();
+    }
+
+    return {createBoard, resetBoard, initializePlayers, checkForTie, checkWinner,
+            startGame};
+})();
+
+game.startGame();
